@@ -12,7 +12,7 @@ PostsListController = RouteController.extend {
     parseInt this.params.postsLimit or this.increment
 
   findOptions: ->
-    {sort: {submitted: -1, _id: -1}, limit: this.limit()}
+    {sort:  this.sort, limit: this.limit()}
 
   waitOn: ->
     Meteor.subscribe 'posts', this.findOptions()
@@ -20,11 +20,38 @@ PostsListController = RouteController.extend {
   data: ->
     {
       posts: Posts.find {}, this.findOptions()
-      nextPath: this.route.path { postsLimit: this.limit() + this.increment }
+      nextPath: this.nextPath()
     }
 }
 
+NewPostsListController = PostsListController.extend {
+  sort: {submitted: -1, _id: -1}
+  nextPath: ->
+    Router.routes.newPosts.path {postsLimit: this.limit() + this.increment}
+}
+
+BestPostsListController = PostsListController.extend {
+  sort: {votes: -1, submitted: -1, _id: -1}
+  nextPath: ->
+    Router.routes.bestPosts.path {postsLimit: this.limit() + this.increment}
+}
+
 Router.map ->
+
+  this.route 'home', {
+    path: '/'
+    controller: NewPostsListController
+  }
+
+  this.route 'newPosts', {
+    path: '/new/:postsLimit?'
+    controller: NewPostsListController
+  }
+
+  this.route 'bestPosts', {
+  path: '/best/:postsLimit?'
+  controller: BestPostsListController
+  }
 
   this.route 'postPage', {
     path: '/posts/:_id'
